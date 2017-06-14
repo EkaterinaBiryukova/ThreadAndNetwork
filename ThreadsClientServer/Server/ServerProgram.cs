@@ -14,22 +14,6 @@ namespace Server
         static void Main(string[] args)
         {
             Console.Title = "SERVER";
-            /*
-             * HowTo make multiparam thread:
-             * If need to make thread with param use new Thread (new ParameterizedThreadStart(<nameMethod>))
-             * signature of <nameMethod>: void <nameMethod> (object param)
-             * <nameMethod> can take only one param type object
-             * so we can use some class as param and make modification of types in <nameMethod>
-             * BAD WAY - types unsafty
-             * GOOD WAY:
-             * Make class with field - params
-             * Constructor of this class is metod to set fields
-             * While making new object of the class one set the values of params
-             * <nameMethod> uses fields of its class like simple method, without modification of types
-             * Using new object make thread from <nameMethod> in main thread
-             */
-            ServerWork serverWork = new ServerWork(95, 10.1, new DateTime());
-            new Thread(serverWork.ServerWork__1).Start();
 
             //Sockets
 
@@ -38,7 +22,7 @@ namespace Server
              * Dns.GetHostEntry - get information about host by name or address
              * GetHostEntry - get IP(IPs) by host name and but this IP(IPs) in ArrayList
              */
-            IPHostEntry ipHostEntry = Dns.GetHostEntry("localhost"); // take IP of localhost
+            IPHostEntry ipHostEntry = Dns.GetHostEntry("127.0.0.1"); // take IP of localhost
             IPAddress ipAddr = ipHostEntry.AddressList[0];
             // OR
             /* IPAddress - class ip-address
@@ -58,7 +42,7 @@ namespace Server
              * То есть клиент должен будет 
              * подключаться к локальному адресу и порту 8005.
              */
-            IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 11000); // port of server
+            IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 8005); // port of server
 
             // NUZEN LI PERVIJ PARAM!!!
             Socket socket = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -79,6 +63,8 @@ namespace Server
                  * only for TCP, not need for UDP
                  */
                 socket.Listen(5);
+                Console.WriteLine("Сервер запущен. Ожидание подключений...");
+                Console.WriteLine("Listening....");
 
                 while (true)
                 {
@@ -87,11 +73,17 @@ namespace Server
                      */
                     Socket tmp = socket.Accept();
 
+                    
                     //Send-Receive data
                     byte[] databytes = new byte[256];
                     String data;
-                    tmp.Receive(databytes);
-                    data = Encoding.Unicode.GetString(databytes);
+
+                    do
+                    {
+                        tmp.Receive(databytes);
+                        data = Encoding.Unicode.GetString(databytes);
+                    } while (tmp.Available > 0); // while have data to read
+                    
                     Console.WriteLine("data - '{0}'", data);
                     /*
                      * Block send and receive data by this socket
@@ -110,9 +102,9 @@ namespace Server
             {
 
             }
-            
 
 
+            Console.WriteLine("End of server");
             Console.ReadLine();
         }
     }
