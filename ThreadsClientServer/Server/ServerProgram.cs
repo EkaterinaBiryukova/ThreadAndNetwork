@@ -29,7 +29,6 @@ namespace Server
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 8005); // port of server
 
             TcpListener tcpListener = new TcpListener(ipEndPoint);
-            int i = 1;
             while (true)
             {
                 try
@@ -40,10 +39,7 @@ namespace Server
                     TcpClient tcpClient = tcpListener.AcceptTcpClient();
                     //get incoming connection, start server thread for this connection
                     ServerWork serverWork = new ServerWork(tcpClient);
-                    Thread serverThread = new Thread(serverWork.StartServer);
-                    serverThread.Name = "Server N " + i.ToString();
-                    serverThread.Start();
-                    i++;
+                    ThreadPool.QueueUserWorkItem(new WaitCallback((s) => { serverWork.StartServer();} ) );
                 }
                 catch (SocketException)
                 {
@@ -65,5 +61,6 @@ namespace Server
             }
 
         }
+
     }
 }

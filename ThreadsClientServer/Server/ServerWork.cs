@@ -20,26 +20,25 @@ namespace Server
         /// <summary>
         /// Start server for incomming connection (this is thread)
         /// </summary>
-        public void StartServer()
+        public async Task StartServer()
         {
             Console.WriteLine("Start " + Thread.CurrentThread.Name);
-            string data = ReceiveRequestFromClient();
-            ParseRequestAndSendFromClient(data);
+            string data = await ReceiveRequestFromClient();
+            await ParseRequestAndSendFromClient(data);
 
             tcpClient.Close();
-
 
             Console.WriteLine("End " + Thread.CurrentThread.Name);
         }
 
-        String ReceiveRequestFromClient()
+        async Task<String>  ReceiveRequestFromClient()
         {
             byte[] buffer = new byte[256]; // MUST BE EXCEPTION
             String data;
             do
             {
                 NetworkStream networkStream = tcpClient.GetStream();
-                networkStream.Read(buffer, 0, buffer.Length);
+                await networkStream.ReadAsync(buffer, 0, buffer.Length);
                 data = Encoding.Unicode.GetString(buffer);
                 Console.WriteLine("(1): Time: {0}, Message - '{1}'", DateTime.Now.ToShortTimeString(), data);
             } while (tcpClient.Available > 0); // while have data to read
@@ -49,17 +48,17 @@ namespace Server
             
 
         }
-        void ParseRequestAndSendFromClient(string request)
+        async Task ParseRequestAndSendFromClient(string request)
         {
-            if (request.CompareTo(ServerProgram._REQ_TEMP) == 0) { SendInformationToClient("100C"); }
-            else if (request.CompareTo(ServerProgram._REQ_DATE) == 0) { SendInformationToClient(DateTime.Now.ToLongDateString()); }
-            else { SendInformationToClient( "ERROR"); }
+            if (request.CompareTo(ServerProgram._REQ_TEMP) == 0) { await SendInformationToClient("100C"); }
+            else if (request.CompareTo(ServerProgram._REQ_DATE) == 0) {await SendInformationToClient(DateTime.Now.ToLongDateString()); }
+            else { await SendInformationToClient( "ERROR"); }
         }
-        void SendInformationToClient(string data)
+        async Task SendInformationToClient(string data)
         {
             byte[] buffer = Encoding.Unicode.GetBytes(data);
             NetworkStream networkStream = tcpClient.GetStream();
-            networkStream.Write(buffer, 0, buffer.Length);
+            await networkStream.WriteAsync(buffer, 0, buffer.Length);
         }
     }
 
