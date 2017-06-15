@@ -4,132 +4,62 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Threading;
 using System.Net;
 
 namespace Server
 {
     class ServerWork
     {
-        
 
+        TcpClient tcpClient;
+        public ServerWork(TcpClient tcpClient)
+        {
+            this.tcpClient = tcpClient;
+        }
         /// <summary>
-        /// Start server, set configuration
+        /// Start server for incomming connection (this is thread)
         /// </summary>
         public void StartServer()
         {
+            Console.WriteLine("Start " + Thread.CurrentThread.Name);
+            string data = ReceiveRequestFromClient();
+            ParseRequestAndSendFromClient(data);
 
-            /*
-             * IPHostEntry - info about computer-host, AddressList for many IP of one computer
-             * Dns.GetHostEntry - get information about host by name or address
-             * GetHostEntry - get IP(IPs) by host name and but this IP(IPs) in ArrayList
-             */
-            IPHostEntry ipHostEntry = Dns.GetHostEntry("127.0.0.1"); // take IP of localhost
-            IPAddress ipAddr = ipHostEntry.AddressList[0];
-            // OR
-            /* IPAddress - class ip-address
-             * If know IP can use IPAddress without IPHostEntry
-             */
-            ///<example>
-            /// IPAddress ipAddr = IPAddress.Parse("127.0.0.1"); // set ip-addr by parsing string
-            /// ipAddr = IPAddress.Loopback; // the same as 127.0.0.1
-            ///</example>
-
-            /*
-             * Build end_point (ip+port of the remote host, here - client)
-             * IPEndPoint - subclass of abstract class EndPoint
-             * For IP-working use IPEndPoint
-             * Сокет будет прослушивать подключения по 8005 порту 
-             * на локальном адресе 127.0.0.1. 
-             * То есть клиент должен будет 
-             * подключаться к локальному адресу и порту 8005.
-             */
-            IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 8005); // port of server
-            /*
-             * Create server socket who listen incomming connections (number set in Listen method)
-             * When have some connection one create new socket for working (by using method Accept()),
-             * but server socket will continue listening for incomming connections
-             */
-            Socket socketServer = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-            try
-            {
-                /*
-                 * Set up point to listen
-                 *  by signature of Bind parametr is of type EndPoint, 
-                 *  but EndPoint is abstract, so one should use
-                 *  some subclass of EndPoint
-                 *  look at msdn site
-                 *  EndPoint has 2 subclasses - IPEndPoint and DnsEndPoint
-                 */
-                socketServer.Bind(ipEndPoint);
-                /*
-                 * Listen
-                 * only for TCP, not need for UDP
-                 */
-                socketServer.Listen(5);
-                Console.WriteLine("Listening....");
-
-                while (true)
-                {
-                    /*
-                     * Receive incoming connection (incomming connection is socket to)
-                     * Socket creating while accepting connection
-                     * This socket create for work (send and receive), server socket 
-                     * continue to listen incomming connections
-                     */
-                    Socket socketClientConnection = socketServer.Accept();
-
-                    string data = ReceiveRequestFromClient(socketClientConnection);
-                    ParseRequestAndSendFromClient(socketClientConnection, data);
-                    
-                    
-                    /*
-                     * Block send and receive data by this socket
-                     * and close socket
-                     */
-                    socketClientConnection.Shutdown(SocketShutdown.Both);
-                    socketClientConnection.Close();
-                }
-
-            }
-            catch (Exception)
-            {
-
-            }
-            finally
-            {
-
-            }
+            tcpClient.Close();
 
 
-            Console.WriteLine("End of server");
+            Console.WriteLine("End " + Thread.CurrentThread.Name);
         }
 
-        String ReceiveRequestFromClient(Socket socketClientConnection)
+        String ReceiveRequestFromClient()
         {
-            byte[] databytes = new byte[256];
+            byte[] buffer = new byte[256]; // MUST BE EXCEPTION
             String data;
             do
             {
-                socketClientConnection.Receive(databytes);
-                data = Encoding.Unicode.GetString(databytes);
-            } while (socketClientConnection.Available > 0); // while have data to read
-            Console.WriteLine("Time: {0}, Message - '{1}'", DateTime.Now.ToShortTimeString(), data);
+                NetworkStream networkStream = tcpClient.GetStream();
+                networkStream.Read(buffer, 0, buffer.Length);
+                data = Encoding.Unicode.GetString(buffer);
+                Console.WriteLine("(1): Time: {0}, Message - '{1}'", DateTime.Now.ToShortTimeString(), data);
+            } while (tcpClient.Available > 0); // while have data to read
+            Console.WriteLine("(2): Time: {0}, Message - '{1}'", DateTime.Now.ToShortTimeString(), data);
 
             return (data);
             
 
         }
-        void ParseRequestAndSendFromClient(Socket socketClientConnection, string request)
+        void ParseRequestAndSendFromClient(string request)
         {
-            if (request.CompareTo(ServerProgram._REQ_TEMP) == 0) { SendInformationToClient(socketClientConnection, "100C"); }
-            else if (request.CompareTo(ServerProgram._REQ_DATE) == 0) { SendInformationToClient(socketClientConnection, DateTime.Now.ToLongDateString()); }
-            else { SendInformationToClient(socketClientConnection, "ERROR"); }
+            if (request.CompareTo(ServerProgram._REQ_TEMP) == 0) { SendInformationToClient("100C"); }
+            else if (request.CompareTo(ServerProgram._REQ_DATE) == 0) { SendInformationToClient(DateTime.Now.ToLongDateString()); }
+            else { SendInformationToClient( "ERROR"); }
         }
-        void SendInformationToClient(Socket socketClientConnection, string data)
+        void SendInformationToClient(string data)
         {
-            byte[] buff = Encoding.Unicode.GetBytes(data);
-            socketClientConnection.Send(buff);
+            byte[] buffer = Encoding.Unicode.GetBytes(data);
+            NetworkStream networkStream = tcpClient.GetStream();
+            networkStream.Write(buffer, 0, buffer.Length);
         }
     }
 

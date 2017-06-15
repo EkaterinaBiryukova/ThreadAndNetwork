@@ -18,6 +18,7 @@ namespace Client
         /// </summary>
         public void ClientThread(object request)
         {
+            Console.WriteLine("start of client");
             //SOCKET
             IPAddress ipAddr = IPAddress.Parse("127.0.0.1");
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 8005);
