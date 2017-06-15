@@ -12,18 +12,10 @@ namespace Server
 {
     class ServerProgram
     {
-        public static readonly string _REQ_TEMP = "temperature";
-        public static readonly string _REQ_DATE = "date";
+        
         static void Main(string[] args)
         {
             Console.Title = "SERVER";
-
-            //Sockets
-            //ServerWork serverWork = new ServerWork();
-            //serverWork.StartServer();
-
-            //MultiThreadServer
-
             IPHostEntry ipHostEntry = Dns.GetHostEntry("127.0.0.1"); // take IP of localhost
             IPAddress ipAddr = ipHostEntry.AddressList[0];
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 8005); // port of server
@@ -39,7 +31,7 @@ namespace Server
                     TcpClient tcpClient = tcpListener.AcceptTcpClient();
                     //get incoming connection, start server thread for this connection
                     ServerWork serverWork = new ServerWork(tcpClient);
-                    ThreadPool.QueueUserWorkItem(new WaitCallback((s) => { serverWork.StartServer();} ) );
+                    ThreadPool.QueueUserWorkItem(new WaitCallback( async (s) => { await serverWork.StartServer();} ) );
                 }
                 catch (SocketException)
                 {

@@ -8,7 +8,7 @@ namespace LibExchange
 {
     /// <summary>
     /// Serializable
-    /// Information geting from server
+    /// Information getting from server
     /// </summary>
     [Serializable]
     public class InformationFromServer
@@ -51,5 +51,11 @@ namespace LibExchange
         {
             Console.WriteLine("str - {0}, value - {1}", str, value);
         }
+    }
+
+    public static class ConstForRequest
+    {
+        public static readonly string _REQ_TEMP = "temperature";
+        public static readonly string _REQ_DATE = "date";
     }
 }

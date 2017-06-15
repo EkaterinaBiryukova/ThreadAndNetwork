@@ -12,6 +12,9 @@ using LibExchange;
 
 namespace Server
 {
+    /// <summary>
+    /// Работа сервера: прием и выдача данных
+    /// </summary>
     class ServerWork
     {
 
@@ -33,7 +36,10 @@ namespace Server
 
             Console.WriteLine("End " + Thread.CurrentThread.Name);
         }
-
+        /// <summary>
+        /// async Receiving request information from server
+        /// </summary>
+        /// <returns>String request</returns>
         async Task<String>  ReceiveRequestFromClient()
         {
             byte[] buffer = new byte[256]; // MUST BE EXCEPTION
@@ -48,12 +54,20 @@ namespace Server
 
             return (data);
         }
+        /// <summary>
+        /// Parse request from client and prepare information
+        /// </summary>
+        /// <param name="request">request from client</param>
         void ParseRequestAndSendFromClient(string request)
         {
-            if (request.CompareTo(ServerProgram._REQ_TEMP) == 0) {  SendInformationToClient("100C"); }
-            else if (request.CompareTo(ServerProgram._REQ_DATE) == 0) {SendInformationToClient(DateTime.Now.ToLongDateString()); }
+            if (request.CompareTo(ConstForRequest._REQ_TEMP) == 0) {  SendInformationToClient("100C"); }
+            else if (request.CompareTo(ConstForRequest._REQ_DATE) == 0) {SendInformationToClient(DateTime.Now.ToLongDateString()); }
             else { SendInformationToClient( "ERROR"); }
         }
+        /// <summary>
+        /// Sending information to client as an serialized object
+        /// </summary>
+        /// <param name="data">information for sending</param>
         void SendInformationToClient(string data)
         {
             NetworkStream networkStream = tcpClient.GetStream();

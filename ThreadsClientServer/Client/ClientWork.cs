@@ -42,12 +42,23 @@ namespace Client
 
             Console.WriteLine("End of client");
         }
+
+        /// <summary>
+        /// Send request for information to server
+        /// </summary>
+        /// <param name="tcpClient">connecton to server</param>
+        /// <param name="request">request</param>
         void SendRequestToServer(TcpClient tcpClient, String request)
         {
             byte[] data = Encoding.Unicode.GetBytes(request);
             NetworkStream networkStream = tcpClient.GetStream();
             networkStream.Write(data, 0, data.Length);
         }
+
+        /// <summary>
+        /// Receive and deserialize information from server
+        /// </summary>
+        /// <param name="tcpClient">connection to server</param>
         void ReceiveInfromatoinFromServer(TcpClient tcpClient)
         {
             InformationFromServer input;
