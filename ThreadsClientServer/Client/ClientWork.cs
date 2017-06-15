@@ -6,49 +6,24 @@ using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
-using LibExchange;
+using LibExchange; 
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Client
 {
-    class ClientWork
+    class ClientWork : AbstractClient
     {
-        
-        /// <summary>
-        /// Thread method
-        /// Create socket to server and send some message
-        /// </summary>
-        public void ClientThread(object request)
+        String request;
+        public ClientWork (String ip, int port, object request) : base (ip, port)
         {
-            Console.WriteLine("start of client");
-            
-            IPAddress ipAddr = IPAddress.Parse("127.0.0.1");
-            IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 8005);
-            TcpClient tcpClient = new TcpClient();
-            
-            tcpClient.Connect(ipEndPoint); // port of server
-
-            /*
-             * Send data to server
-             */
-            SendRequestToServer(tcpClient, request.ToString());
-            ReceiveInfromatoinFromServer(tcpClient);
-            /*
-             * Block send and receive data by this socket
-             * and close socket
-             */
-            tcpClient.Close();
-
-
-            Console.WriteLine("End of client");
+            this.request = request.ToString();
         }
 
         /// <summary>
-        /// Send request for information to server
+        /// Override
         /// </summary>
-        /// <param name="tcpClient">connecton to server</param>
-        /// <param name="request">request</param>
-        void SendRequestToServer(TcpClient tcpClient, String request)
+        /// <param name="tcpClient"></param>
+        public override void SendRequestToServer(TcpClient tcpClient)
         {
             byte[] data = Encoding.Unicode.GetBytes(request);
             NetworkStream networkStream = tcpClient.GetStream();
@@ -56,10 +31,10 @@ namespace Client
         }
 
         /// <summary>
-        /// Receive and deserialize information from server
+        /// Override
         /// </summary>
-        /// <param name="tcpClient">connection to server</param>
-        void ReceiveInfromatoinFromServer(TcpClient tcpClient)
+        /// <param name="tcpClient"></param>
+        public override void ReceiveInfromatoinFromServer(TcpClient tcpClient)
         {
             InformationFromServer input;
             do

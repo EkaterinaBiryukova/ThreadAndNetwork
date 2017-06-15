@@ -51,6 +51,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LibAbstract\LibAbstract.csproj">
+      <Project>{ef1be3a9-2d66-4081-915c-6f45bec95a11}</Project>
+      <Name>LibAbstract</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LibExchange\LibExchange.csproj">
       <Project>{77d03e99-441e-4f1b-a61c-ebc28dd177ed}</Project>
       <Name>LibExchange</Name>

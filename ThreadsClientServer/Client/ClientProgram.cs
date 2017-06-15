@@ -15,18 +15,14 @@ namespace Client
         {
             Console.Title = "CLIENT";
 
-            ClientWork client = new ClientWork();
-
-            for (int i =1; i<5;i++)
+            for (int i = 0; i< 5; i++)
             {
-                Thread clientThread = new Thread(client.ClientThread);
-                clientThread.Name = i.ToString();
-                if (i%2 == 0)
-                {
-                    clientThread.Start(ConstForRequest._REQ_TEMP);
-                }
-                else clientThread.Start(ConstForRequest._REQ_DATE);
-                Thread.Sleep(1000);
+                string request;
+                if (i % 2 == 0) request = ConstForRequest._REQ_DATE;
+                else request = ConstForRequest._REQ_TEMP;
+                ClientWork client = new ClientWork("127.0.0.1", 8005, request);
+
+                ThreadPool.QueueUserWorkItem(new WaitCallback ( (s) => { client.ClientThread(); }));
             }
 
             Console.ReadLine();

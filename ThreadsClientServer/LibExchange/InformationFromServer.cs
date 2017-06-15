@@ -15,6 +15,11 @@ namespace LibExchange
     {
         private string str;
         private int value;
+
+        public InformationFromServer()
+        {
+
+        }
         public InformationFromServer(string str, int value)
         {
             Str = str;

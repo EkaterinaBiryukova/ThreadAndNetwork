@@ -15,38 +15,25 @@ namespace Server
     /// <summary>
     /// Работа сервера: прием и выдача данных
     /// </summary>
-    class ServerWork
+    class ServerWork : AbstractServer
     {
-
-        TcpClient tcpClient;
-        public ServerWork(TcpClient tcpClient)
+        InformationFromServer output;
+        public ServerWork(TcpClient tcpClient) : base(tcpClient)
         {
-            this.tcpClient = tcpClient;
-        }
-        /// <summary>
-        /// Start server for incomming connection (this is thread)
-        /// </summary>
-        public async Task StartServer()
-        {
-            Console.WriteLine("Start " + Thread.CurrentThread.Name);
-            string data = await ReceiveRequestFromClient();
-            ParseRequestAndSendFromClient(data);
-
-            tcpClient.Close();
-
-            Console.WriteLine("End " + Thread.CurrentThread.Name);
+            // create new object for sending to this client
+            output = new InformationFromServer();
         }
         /// <summary>
         /// async Receiving request information from server
         /// </summary>
         /// <returns>String request</returns>
-        async Task<String>  ReceiveRequestFromClient()
+        public override async Task<object>  ReceiveRequestFromClientAsync()
         {
             byte[] buffer = new byte[256]; // MUST BE EXCEPTION
             String data;
             do
             {
-                NetworkStream networkStream = tcpClient.GetStream();
+                NetworkStream networkStream = base.tcpClient.GetStream();
                 await networkStream.ReadAsync(buffer, 0, buffer.Length);
                 data = Encoding.Unicode.GetString(buffer);
             } while (tcpClient.Available > 0); // while have data to read
@@ -58,22 +45,47 @@ namespace Server
         /// Parse request from client and prepare information
         /// </summary>
         /// <param name="request">request from client</param>
-        void ParseRequestAndSendFromClient(string request)
+        public override void ParseRequestAndPrepareFromClient(object request)
         {
-            if (request.CompareTo(ConstForRequest._REQ_TEMP) == 0) {  SendInformationToClient("100C"); }
-            else if (request.CompareTo(ConstForRequest._REQ_DATE) == 0) {SendInformationToClient(DateTime.Now.ToLongDateString()); }
-            else { SendInformationToClient( "ERROR"); }
+            if (request.ToString().CompareTo(ConstForRequest._REQ_TEMP) == 0)
+            {
+                PrepareTemperature();
+            }
+            else if (request.ToString().CompareTo(ConstForRequest._REQ_DATE) == 0)
+            {
+                PrepareData();
+            }
+            else
+            {
+                PrepareError();
+            }
         }
+
+        void PrepareTemperature()
+        {
+            output.Str = "100C";
+            output.Value = 1;
+        }
+        void PrepareData()
+        {
+            output.Str = DateTime.Now.ToLongDateString();
+            output.Value = 2;
+        }
+        void PrepareError()
+        {
+            output.Str = "ERROR";
+            output.Value = 3;
+        }
+
         /// <summary>
         /// Sending information to client as an serialized object
         /// </summary>
-        /// <param name="data">information for sending</param>
-        void SendInformationToClient(string data)
+        public override void SendInformationToClient()
         {
             NetworkStream networkStream = tcpClient.GetStream();
 
             // try to send object
-            InformationFromServer output = new InformationFromServer(data, 1);
+            //InformationFromServer output = new InformationFromServer(data, 1);
             BinaryFormatter binaryFormatter = new BinaryFormatter();
             binaryFormatter.Serialize(networkStream, output);
 
