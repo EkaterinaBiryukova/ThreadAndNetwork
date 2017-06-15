@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Threading;
 using System.Net;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using LibExchange;
 
 namespace Server
 {
@@ -24,7 +27,7 @@ namespace Server
         {
             Console.WriteLine("Start " + Thread.CurrentThread.Name);
             string data = await ReceiveRequestFromClient();
-            await ParseRequestAndSendFromClient(data);
+            ParseRequestAndSendFromClient(data);
 
             tcpClient.Close();
 
@@ -40,25 +43,26 @@ namespace Server
                 NetworkStream networkStream = tcpClient.GetStream();
                 await networkStream.ReadAsync(buffer, 0, buffer.Length);
                 data = Encoding.Unicode.GetString(buffer);
-                Console.WriteLine("(1): Time: {0}, Message - '{1}'", DateTime.Now.ToShortTimeString(), data);
             } while (tcpClient.Available > 0); // while have data to read
-            Console.WriteLine("(2): Time: {0}, Message - '{1}'", DateTime.Now.ToShortTimeString(), data);
+            Console.WriteLine("Time: {0}, Message - '{1}'", DateTime.Now.ToShortTimeString(), data);
 
             return (data);
-            
-
         }
-        async Task ParseRequestAndSendFromClient(string request)
+        void ParseRequestAndSendFromClient(string request)
         {
-            if (request.CompareTo(ServerProgram._REQ_TEMP) == 0) { await SendInformationToClient("100C"); }
-            else if (request.CompareTo(ServerProgram._REQ_DATE) == 0) {await SendInformationToClient(DateTime.Now.ToLongDateString()); }
-            else { await SendInformationToClient( "ERROR"); }
+            if (request.CompareTo(ServerProgram._REQ_TEMP) == 0) {  SendInformationToClient("100C"); }
+            else if (request.CompareTo(ServerProgram._REQ_DATE) == 0) {SendInformationToClient(DateTime.Now.ToLongDateString()); }
+            else { SendInformationToClient( "ERROR"); }
         }
-        async Task SendInformationToClient(string data)
+        void SendInformationToClient(string data)
         {
-            byte[] buffer = Encoding.Unicode.GetBytes(data);
             NetworkStream networkStream = tcpClient.GetStream();
-            await networkStream.WriteAsync(buffer, 0, buffer.Length);
+
+            // try to send object
+            InformationFromServer output = new InformationFromServer(data, 1);
+            BinaryFormatter binaryFormatter = new BinaryFormatter();
+            binaryFormatter.Serialize(networkStream, output);
+
         }
     }
 
