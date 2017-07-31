@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
+using LibExchange;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Client
 {
@@ -18,45 +20,55 @@ namespace Client
         /// </summary>
         public void ClientThread(object request)
         {
-            //SOCKET
+            Console.WriteLine("start of client");
+            
             IPAddress ipAddr = IPAddress.Parse("127.0.0.1");
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 8005);
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
+            TcpClient tcpClient = new TcpClient();
             
-            socket.Connect(ipEndPoint); // port of server
+            tcpClient.Connect(ipEndPoint); // port of server
 
             /*
              * Send data to server
              */
-            SendRequestToServer(socket, request.ToString());
-            ReceiveInfromatoinFromServer(socket);
+            SendRequestToServer(tcpClient, request.ToString());
+            ReceiveInfromatoinFromServer(tcpClient);
             /*
              * Block send and receive data by this socket
              * and close socket
              */
-            socket.Shutdown(SocketShutdown.Both);
-            socket.Close();
+            tcpClient.Close();
 
 
             Console.WriteLine("End of client");
         }
-        void SendRequestToServer(Socket socket, String request)
+
+        /// <summary>
+        /// Send request for information to server
+        /// </summary>
+        /// <param name="tcpClient">connecton to server</param>
+        /// <param name="request">request</param>
+        void SendRequestToServer(TcpClient tcpClient, String request)
         {
             byte[] data = Encoding.Unicode.GetBytes(request);
-            socket.Send(data);
+            NetworkStream networkStream = tcpClient.GetStream();
+            networkStream.Write(data, 0, data.Length);
         }
-        void ReceiveInfromatoinFromServer(Socket socket)
+
+        /// <summary>
+        /// Receive and deserialize information from server
+        /// </summary>
+        /// <param name="tcpClient">connection to server</param>
+        void ReceiveInfromatoinFromServer(TcpClient tcpClient)
         {
-            byte[] buff = new byte [256];
-            String data;
+            InformationFromServer input;
             do
             {
-                socket.Receive(buff);
-                data = Encoding.Unicode.GetString(buff);
-            } while (socket.Available > 0);
-            Console.WriteLine("For client {0} get {1}", Thread.CurrentThread.Name, data);
-            
+                BinaryFormatter binaryFormatter = new BinaryFormatter();
+                input = (InformationFromServer)binaryFormatter.Deserialize(tcpClient.GetStream());
+            } while (tcpClient.Available > 0);
+
+            input.Print();
         }
     }
 

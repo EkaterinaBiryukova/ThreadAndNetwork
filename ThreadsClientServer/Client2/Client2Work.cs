@@ -11,14 +11,14 @@ namespace Client2
 {
     class Client2Work
     {
-        const string _REQ_TEMP = "temperature";
-        const string _REQ_DATE = "date";
+
         /// <summary>
         /// Thread method
         /// Create socket to server and send some message
         /// </summary>
-        public void ClientThread()
+        public void ClientThread(object request)
         {
+            Console.WriteLine("start of client");
             //SOCKET
             IPAddress ipAddr = IPAddress.Parse("127.0.0.1");
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 8005);
@@ -30,9 +30,8 @@ namespace Client2
             /*
              * Send data to server
              */
-            String str = "Hi, Im client_" + Thread.CurrentThread.Name;
-            byte[] data = Encoding.Unicode.GetBytes(str);
-            socket.Send(data);
+            SendRequestToServer(socket, request.ToString());
+            ReceiveInfromatoinFromServer(socket);
             /*
              * Block send and receive data by this socket
              * and close socket
@@ -42,6 +41,23 @@ namespace Client2
 
 
             Console.WriteLine("End of client");
+        }
+        void SendRequestToServer(Socket socket, String request)
+        {
+            byte[] data = Encoding.Unicode.GetBytes(request);
+            socket.Send(data);
+        }
+        void ReceiveInfromatoinFromServer(Socket socket)
+        {
+            byte[] buff = new byte[256];
+            String data;
+            do
+            {
+                socket.Receive(buff);
+                data = Encoding.Unicode.GetString(buff);
+            } while (socket.Available > 0);
+            Console.WriteLine("For client {0} get {1}", Thread.CurrentThread.Name, data);
+
         }
     }
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-
+using LibExchange;
 
 namespace Client2
 {
@@ -16,10 +16,17 @@ namespace Client2
 
             Client2Work client = new Client2Work();
 
-            Thread clientThread = new Thread(client.ClientThread);
-            clientThread.Name = "Client2";
-            clientThread.Start();
-
+            for (int i = 1; i < 10; i++)
+            {
+                Thread clientThread = new Thread(client.ClientThread);
+                clientThread.Name = i.ToString();
+                if (i % 2 == 0)
+                {
+                    clientThread.Start(ConstForRequest._REQ_TEMP);
+                }
+                else clientThread.Start(ConstForRequest._REQ_DATE);
+                Thread.Sleep(1000);
+            }
 
             Console.ReadLine();
         }

@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using LibExchange;
 
 
 namespace Client
 {
     class ClientProgram
     {
-        public static readonly string _REQ_TEMP = "temperature";
-        public static readonly string _REQ_DATE = "date";
         static void Main(string[] args)
         {
             Console.Title = "CLIENT";
@@ -24,9 +23,9 @@ namespace Client
                 clientThread.Name = i.ToString();
                 if (i%2 == 0)
                 {
-                    clientThread.Start(_REQ_TEMP);
+                    clientThread.Start(ConstForRequest._REQ_TEMP);
                 }
-                else clientThread.Start(_REQ_DATE);
+                else clientThread.Start(ConstForRequest._REQ_DATE);
                 Thread.Sleep(1000);
             }
 
